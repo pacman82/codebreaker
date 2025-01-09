@@ -6,6 +6,7 @@ const NUM_DIFFERENT_PEGS: u8 = 6;
 
 /// A peg represents one of the places in the code which has to be guessed. Usuall represented as
 /// colors or numbers. The default version of codebreaker uses 6 different kind of pegs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Peg(u8);
 
 impl Peg {

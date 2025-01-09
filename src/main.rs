@@ -1,9 +1,10 @@
-use peg::Peg;
+use code::Code;
 use rand::random;
 
+mod code;
 mod peg;
 
 fn main() {
-    let peg: Peg = random();
-    println!("{peg}");
+    let code: Code = random();
+    println!("{code}");
 }
