@@ -1,3 +1,5 @@
+use std::io;
+
 use anyhow::Error;
 use code::Code;
 use rand::random;
@@ -10,19 +12,9 @@ fn main() -> Result<(), Error> {
     println!("Generated code: {code}");
 
     println!("Please enter a code, or 'q' to quit: ");
-    let mut input = String::new();
-    let guess: Code = loop {
-        input.clear();
-        std::io::stdin().read_line(&mut input)?;
-        let input = input.trim();
-        if input == "q" {
-            println!("Quit. Have a great day!");
-            return Ok(());
-        }
-        match input.parse() {
-            Ok(guess) => break guess,
-            Err(e) => println!("Invalid input: {e}\nPlease try again: ")
-        }
+    let Some(guess) = ask_for_guess()? else {
+        println!("Quit. Have a great day!");
+        return Ok(());
     };
 
     println!("You guessed: {guess}");
@@ -33,4 +25,21 @@ fn main() -> Result<(), Error> {
         println!("Does not match")
     }
     Ok(())
+}
+
+fn ask_for_guess() -> io::Result<Option<Code>> {
+    let mut input_raw = String::new();
+    let code = loop {
+        io::stdin().read_line(&mut input_raw)?;
+        let input = input_raw.trim();
+        if input == "q" {
+            return Ok(None);
+        }
+        match input.parse() {
+            Ok(guess) => break guess,
+            Err(e) => println!("Invalid input: {e}\nPlease try again: ")
+        }
+        input_raw.clear();
+    };
+    Ok(Some(code))
 }
