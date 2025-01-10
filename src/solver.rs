@@ -6,25 +6,31 @@ use crate::{
 
 /// A solver for codebreaker
 pub struct Solver {
-    possible_codes: Vec<Code>,
+    /// Codes which have not been guessed so far yet.
+    unguessed_codes: Vec<Code>,
+    /// Solutions which are still possible.
+    possible_solutions: Vec<Code>,
 }
 
 impl Solver {
     pub fn new() -> Self {
-        let mut possible_codes =
+        let mut possible_solutions =
             Vec::with_capacity((NUM_DIFFERENT_PEGS as usize).pow(NUMBER_OF_PEGS_IN_CODE as u32));
-        possible_codes.extend(all_possible_codes());
-        Solver { possible_codes }
+        possible_solutions.extend(all_possible_codes());
+        Solver { 
+            unguessed_codes: possible_solutions.clone(),
+            possible_solutions
+        }
     }
 
     pub fn guess(&mut self) -> Code {
         // If we know the answer we "guess" it
-        if self.possible_codes.len() == 1 {
-            return self.possible_codes[0];
+        if self.possible_solutions.len() == 1 {
+            return self.possible_solutions[0];
         }
         // Minimize guaranteed remaining possibliities
-        let (guess, _max_remaining) = all_possible_codes()
-            .map(|candidate_guess| {
+        let (guess, _max_remaining) = self.unguessed_codes.iter()
+            .map(|&candidate_guess| {
                 (
                     candidate_guess,
                     self.min_possibilties_eliminated(candidate_guess),
@@ -36,15 +42,16 @@ impl Solver {
     }
 
     pub fn update(&mut self, guess: Code, hint: Hint) {
-        self.possible_codes.retain(|&code| {
+        self.possible_solutions.retain(|&code| {
             let canidate_hint = Hint::new(guess, code);
             hint == canidate_hint
         });
+        self.unguessed_codes.retain(|&code| code != guess);
     }
 
     /// Minimum number of possiblities a guess would eliminate
     fn min_possibilties_eliminated(&self, candidate_guess: Code) -> u32 {
-        self.possible_codes
+        self.possible_solutions
             .iter()
             .map(|&possible_solution| {
                 let hint = Hint::new(candidate_guess, possible_solution);
@@ -56,7 +63,7 @@ impl Solver {
 
     /// How many possible codes would be remaining by a guess with a certain hint.
     fn num_eliminated_possiblities(&self, hint: Hint, guess: Code) -> u32 {
-        self.possible_codes
+        self.possible_solutions
             .iter()
             .filter(|&&code| hint != Hint::new(guess, code))
             .count() as u32
