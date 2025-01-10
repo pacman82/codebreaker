@@ -1,7 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
 use rand::{distributions::Standard, prelude::Distribution, Rng};
-
 const NUM_DIFFERENT_PEGS: u8 = 6;
 
 /// A peg represents one of the places in the code which has to be guessed. Usuall represented as
@@ -15,11 +14,35 @@ impl Peg {
         assert!(n < NUM_DIFFERENT_PEGS);
         Peg(n)
     }
+
+    pub fn from_char(c: char) -> Option<Self> {
+        match c {
+            '1' => Some(Peg(0)),
+            '2' => Some(Peg(1)),
+            '3' => Some(Peg(2)),
+            '4' => Some(Peg(3)),
+            '5' => Some(Peg(4)),
+            '6' => Some(Peg(5)),
+            _ => None,
+        }
+    }
+
+    pub fn to_char(self) -> char {
+        match self {
+            Peg(0) => '1',
+            Peg(1) => '2',
+            Peg(2) => '3',
+            Peg(3) => '4',
+            Peg(4) => '5',
+            Peg(5) => '6',
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl Display for Peg {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.to_char())
     }
 }
 
