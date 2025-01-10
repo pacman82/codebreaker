@@ -3,6 +3,9 @@ use std::fmt::{self, Display, Formatter};
 use rand::{distributions::Standard, prelude::Distribution, Rng};
 const NUM_DIFFERENT_PEGS: u8 = 6;
 
+/// Array of all different peg variants
+pub const POSSIBLE_COLORS: [Peg; NUM_DIFFERENT_PEGS as usize] = possible_pegs();
+
 /// A peg represents one of the places in the code which has to be guessed. Usuall represented as
 /// colors or numbers. The default version of codebreaker uses 6 different kind of pegs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -10,7 +13,7 @@ pub struct Peg(u8);
 
 impl Peg {
     /// Construct a peg from a number between 0 and 5.
-    pub fn new(n: u8) -> Self {
+    pub const fn new(n: u8) -> Self {
         assert!(n < NUM_DIFFERENT_PEGS);
         Peg(n)
     }
@@ -57,4 +60,17 @@ impl Distribution<Peg> for Standard {
         };
         Peg(byte % NUM_DIFFERENT_PEGS)
     }
+}
+
+const fn possible_pegs() -> [Peg; NUM_DIFFERENT_PEGS as usize] {
+    let mut pegs = [Peg(0); NUM_DIFFERENT_PEGS as usize];
+    let mut index = 0;
+    loop {
+        if index == NUM_DIFFERENT_PEGS {
+            break;
+        }
+        pegs[index as usize] = Peg::new(index);
+        index += 1;
+    }
+    pegs
 }

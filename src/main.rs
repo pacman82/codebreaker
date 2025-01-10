@@ -2,10 +2,12 @@ use std::io;
 
 use anyhow::Error;
 use code::Code;
+use hint::Hint;
 use rand::random;
 
 mod code;
 mod peg;
+mod hint;
 
 fn main() -> Result<(), Error> {
     let code: Code = random();
@@ -19,11 +21,9 @@ fn main() -> Result<(), Error> {
 
     println!("You guessed: {guess}");
 
-    if guess == code {
-        println!("Correct");
-    } else {
-        println!("Does not match")
-    }
+    let hint = Hint::new(guess, code);
+
+    println!("{} correct, {} displaced", hint.correct, hint.displaced);
     Ok(())
 }
 

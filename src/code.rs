@@ -6,10 +6,10 @@ use thiserror::Error;
 use crate::peg::Peg;
 
 /// Number of Pegs in code
-const NUMBER_OF_PEGS: usize = 4;
+pub const NUMBER_OF_PEGS_IN_CODE: usize = 4;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Code(pub [Peg; NUMBER_OF_PEGS]);
+pub struct Code(pub [Peg; NUMBER_OF_PEGS_IN_CODE]);
 
 impl Distribution<Code> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Code {
@@ -20,7 +20,7 @@ impl Distribution<Code> for Standard {
 
 impl Display for Code {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for i in 0..NUMBER_OF_PEGS {
+        for i in 0..NUMBER_OF_PEGS_IN_CODE {
             write!(f, "{}", self.0[i])?;
         }
         Ok(())
@@ -31,7 +31,7 @@ impl FromStr for Code {
     type Err = CodeParsingError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut pegs = [Peg::new(0); NUMBER_OF_PEGS];
+        let mut pegs = [Peg::new(0); NUMBER_OF_PEGS_IN_CODE];
         let mut it_c = s.chars();
         for peg in &mut pegs {
             let Some(c) = it_c.next() else  {
