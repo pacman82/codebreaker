@@ -1,7 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 
 use rand::{distributions::Standard, prelude::Distribution, Rng};
-const NUM_DIFFERENT_PEGS: u8 = 6;
+pub const NUM_DIFFERENT_PEGS: u8 = 6;
 
 /// Array of all different peg variants
 pub const POSSIBLE_COLORS: [Peg; NUM_DIFFERENT_PEGS as usize] = possible_pegs();

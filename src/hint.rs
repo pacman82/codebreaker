@@ -7,7 +7,7 @@ use crate::{
 
 /// Hints are generated in response to guesses, to give the codebreaker a glue how many pegs fit
 /// both, in color and position, and how many pegs only match in color.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Hint {
     /// Number of pegs in the guess, which both match color and position of the code.
     pub correct: u8,
