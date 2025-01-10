@@ -1,3 +1,5 @@
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator as _};
+
 use crate::{
     code::{all_possible_codes, Code, NUMBER_OF_PEGS_IN_CODE},
     hint::Hint,
@@ -29,7 +31,7 @@ impl Solver {
             return self.possible_solutions[0];
         }
         // Minimize guaranteed remaining possibliities
-        let (guess, _max_remaining) = self.unguessed_codes.iter()
+        let (guess, _max_remaining) = self.unguessed_codes.par_iter()
             .map(|&candidate_guess| {
                 (
                     candidate_guess,
