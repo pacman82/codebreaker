@@ -20,6 +20,7 @@ fn main() -> Result<(), Error> {
         code has 4 digits, between 1 and 6.");
 
     loop {
+        num_guess += 1;
         println!("({num_guess}) Please enter a code, 's' to let the machine guess for you, or 'q' to quit: ");
         let guess = match ask_for_input()? {
             Input::Guess(guess) => guess,
@@ -35,7 +36,6 @@ fn main() -> Result<(), Error> {
         };
         let hint = Hint::new(guess, code);
         solver.update(guess, hint);
-        num_guess += 1;
         if guess == code {
             println!("Congratulations! You cracked the code in {num_guess} guesses.");
             break;
