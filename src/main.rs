@@ -10,20 +10,26 @@ mod peg;
 mod hint;
 
 fn main() -> Result<(), Error> {
+    let mut num_guess = 0;
     let code: Code = random();
-    println!("Generated code: {code}");
 
-    println!("Please enter a code, or 'q' to quit: ");
-    let Some(guess) = ask_for_guess()? else {
-        println!("Quit. Have a great day!");
-        return Ok(());
-    };
+    println!("Hello, this is a game, there you guess a code and I give hints after each guess. A \
+        code has 4 digits, between 1 and 6.");
 
-    println!("You guessed: {guess}");
-
-    let hint = Hint::new(guess, code);
-
-    println!("{} correct, {} displaced", hint.correct, hint.displaced);
+    loop {
+        println!("({num_guess}) Please enter a code, or 'q' to quit: ");
+        let Some(guess) = ask_for_guess()? else {
+            println!("Quit. Code was {code}. Have a great day!");
+            return Ok(());
+        };
+        let hint = Hint::new(guess, code);
+        num_guess += 1;
+        if guess == code {
+            println!("Congratulations! You cracked the code in {num_guess} guesses.");
+            break;
+        }
+        println!("Guess: {} correct, {} displaced\n", hint.correct, hint.displaced);
+    }
     Ok(())
 }
 
