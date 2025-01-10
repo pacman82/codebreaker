@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use rand::{distributions::Standard, prelude::Distribution, Rng};
 use thiserror::Error;
 
-use crate::peg::Peg;
+use crate::peg::{Peg, NUM_DIFFERENT_PEGS};
 
 /// Number of Pegs in code
 pub const NUMBER_OF_PEGS_IN_CODE: usize = 4;
@@ -44,6 +44,20 @@ impl FromStr for Code {
         }
         Ok(Code(pegs))
     }
+}
+
+/// A gererator for all possible codes
+pub fn all_possible_codes() -> impl Iterator<Item = Code> {
+    let num_possible_codes = (NUM_DIFFERENT_PEGS as u32).pow(NUMBER_OF_PEGS_IN_CODE as u32);
+    (0..num_possible_codes).map(|n| {
+        let mut code = [Peg::new(0); NUMBER_OF_PEGS_IN_CODE];
+        let mut n = n;
+        for peg in &mut code {
+            *peg = Peg::new((n % NUM_DIFFERENT_PEGS as u32) as u8);
+            n /= NUM_DIFFERENT_PEGS as u32;
+        }
+        Code(code)
+    })
 }
 
 #[derive(Error, Debug)]
