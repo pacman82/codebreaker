@@ -47,7 +47,9 @@ impl Solver {
             .par_iter()
             .map(|&code| Candidate::new(code))
             .reduce_with(|a, b| {
-                Candidate::better(a, b, |code| self.min_possibilties_eliminated(code))
+                Candidate::better(a, b, |code, lower_bound| {
+                    self.min_possibilties_eliminated(code, lower_bound)
+                })
             })
             .expect("Solution must be possible");
         best_candidate.code
@@ -61,13 +63,19 @@ impl Solver {
         self.unguessed_codes.retain(|&code| code != guess);
     }
 
-    /// Minimum number of possiblities a guess would eliminate
-    fn min_possibilties_eliminated(&self, candidate_guess: Code) -> u32 {
+    /// Minimum number of possiblities a guess would eliminate. If the minimum is larger than the
+    /// lower_bound result is exact, otherwise it is lower_bound. Setting a lower bound allows the
+    /// function to exit early if the result would be smaller than the a better maximum we already
+    /// know about.
+    fn min_possibilties_eliminated(&self, candidate_guess: Code, lower_bound: u32) -> u32 {
         let mut current_min = u32::MAX;
         for &possible_solution in &self.possible_solutions {
             let hint = Hint::new(candidate_guess, possible_solution);
             let eliminated = self.num_eliminated_possiblities(hint, candidate_guess, current_min);
             current_min = min(current_min, eliminated);
+            if current_min <= lower_bound {
+                return lower_bound;
+            }
         }
         current_min
     }
@@ -103,16 +111,38 @@ impl Candidate {
     fn better(
         mut a: Candidate,
         mut b: Candidate,
-        min_eliminated: impl Fn(Code) -> u32,
+        min_eliminated_with_lower_bound: impl Fn(Code, u32) -> u32,
     ) -> Candidate {
-        let a_eliminated = a.eliminated.unwrap_or_else(|| min_eliminated(a.code));
-        let b_eliminated = b.eliminated.unwrap_or_else(|| min_eliminated(b.code));
-        a.eliminated = Some(a_eliminated);
-        b.eliminated = Some(b_eliminated);
-        if b_eliminated > a_eliminated {
-            b
+        // Calculate the guaranteed number of eliminated possibilities, if missing, but using an
+        // existing number as lower bound, if available.
+        match (a.eliminated, b.eliminated) {
+            // Both values availabe, nothing to do
+            (Some(_), Some(_)) => a.replace_if_better(b),
+            (Some(a_eliminated), None) => {
+                b.eliminated = Some(min_eliminated_with_lower_bound(b.code, a_eliminated));
+                // Be careful, the order matters here. Due to short circuiting, above b might be
+                // worse, but seem just as good.
+                a.replace_if_better(b)
+            }
+            (None, Some(b_eliminated)) => {
+                a.eliminated = Some(min_eliminated_with_lower_bound(a.code, b_eliminated));
+                b.replace_if_better(a)
+            }
+            (None, None) => {
+                a.eliminated = Some(min_eliminated_with_lower_bound(a.code, 0));
+                b.eliminated = Some(min_eliminated_with_lower_bound(b.code, a.eliminated.unwrap()));
+                a.replace_if_better(b)
+            }
+        }
+    }
+
+    /// Replaces the candidate with another one if the other one is better. If both are equal, self
+    /// is returned. Requires eliminated to be computed.
+    fn replace_if_better(self, other: Candidate) -> Candidate {
+        if other.eliminated.unwrap() > self.eliminated.unwrap() {
+            other
         } else {
-            a
+            self
         }
     }
 }
