@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator as _};
 
 use crate::{
@@ -55,15 +57,13 @@ impl Solver {
 
     /// Minimum number of possiblities a guess would eliminate
     fn min_possibilties_eliminated(&self, candidate_guess: Code) -> u32 {
-        let mut min = u32::MAX;
+        let mut current_min = u32::MAX;
         for &possible_solution in &self.possible_solutions {
             let hint = Hint::new(candidate_guess, possible_solution);
-            let eliminated = self.num_eliminated_possiblities(hint, candidate_guess, min);
-            if eliminated < min {
-                min = eliminated;
-            }
+            let eliminated = self.num_eliminated_possiblities(hint, candidate_guess, current_min);
+            current_min = min(current_min, eliminated);
         }
-        min
+        current_min
     }
 
     /// How many possible codes would be remaining by a guess with a certain hint. The result will
