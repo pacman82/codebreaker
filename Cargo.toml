@@ -8,3 +8,9 @@ anyhow = "1.0.95"
 rand = "0.8.5"
 rayon = "1.10.0"
 thiserror = "2.0.10"
+
+[profile.release]
+# Panics should only be caused by logic errors and are considered bugs
+panic = 'abort'
+# Link time Optimization
+lto = true

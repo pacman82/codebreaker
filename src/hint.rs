@@ -1,7 +1,7 @@
 use std::cmp::min;
 
 use crate::{
-    code::Code,
+    code::{Code, NUMBER_OF_PEGS_IN_CODE},
     peg::{Peg, POSSIBLE_COLORS},
 };
 
@@ -31,6 +31,10 @@ impl Hint {
                 });
 
         Hint { correct, displaced }
+    }
+
+    pub fn is_solution(&self) -> bool {
+        self.correct == NUMBER_OF_PEGS_IN_CODE as u8
     }
 }
 

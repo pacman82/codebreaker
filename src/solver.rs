@@ -19,9 +19,9 @@ impl Solver {
         let mut possible_solutions =
             Vec::with_capacity((NUM_DIFFERENT_PEGS as usize).pow(NUMBER_OF_PEGS_IN_CODE as u32));
         possible_solutions.extend(all_possible_codes());
-        Solver { 
+        Solver {
             unguessed_codes: possible_solutions.clone(),
-            possible_solutions
+            possible_solutions,
         }
     }
 
@@ -31,7 +31,9 @@ impl Solver {
             return self.possible_solutions[0];
         }
         // Minimize guaranteed remaining possibliities
-        let (guess, _max_remaining) = self.unguessed_codes.par_iter()
+        let (guess, _max_remaining) = self
+            .unguessed_codes
+            .par_iter()
             .map(|&candidate_guess| {
                 (
                     candidate_guess,
@@ -53,21 +55,72 @@ impl Solver {
 
     /// Minimum number of possiblities a guess would eliminate
     fn min_possibilties_eliminated(&self, candidate_guess: Code) -> u32 {
-        self.possible_solutions
-            .iter()
-            .map(|&possible_solution| {
-                let hint = Hint::new(candidate_guess, possible_solution);
-                self.num_eliminated_possiblities(hint, candidate_guess)
-            })
-            .min()
-            .expect("All hints must be valid")
+        let mut min = u32::MAX;
+        for &possible_solution in &self.possible_solutions {
+            let hint = Hint::new(candidate_guess, possible_solution);
+            let eliminated = self.num_eliminated_possiblities(hint, candidate_guess, min);
+            if eliminated < min {
+                min = eliminated;
+            }
+        }
+        min
     }
 
-    /// How many possible codes would be remaining by a guess with a certain hint.
-    fn num_eliminated_possiblities(&self, hint: Hint, guess: Code) -> u32 {
+    /// How many possible codes would be remaining by a guess with a certain hint. The result will
+    /// be exact if it is smaller or equal to upper bound. Otherwise it is larger than upper bound.
+    fn num_eliminated_possiblities(&self, hint: Hint, guess: Code, upper_bound: u32) -> u32 {
         self.possible_solutions
             .iter()
             .filter(|&&code| hint != Hint::new(guess, code))
+            .take(upper_bound as usize)
             .count() as u32
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use crate::{code::Code, hint::Hint};
+
+    use super::Solver;
+
+    #[test]
+    fn solve_5611() {
+        let code: Code = "5611".parse().unwrap();
+
+        let mut solver = Solver::new();
+        let guesses = play_out(code, &mut solver);
+
+        assert_eq!(
+            &["5566", "3466", "2356", "1566", "5611"],
+            &guesses[..]
+        );
+    }
+
+    #[test]
+    fn solve_2231() {
+        let code: Code = "2231".parse().unwrap();
+
+        let mut solver = Solver::new();
+        let guesses = play_out(code, &mut solver);
+
+        assert_eq!(
+            &["5566", "2344", "1144", "3314", "2231"],
+            &guesses[..]
+        );
+    }
+
+    fn play_out(code: Code, solver: &mut Solver) -> Vec<String> {
+        let mut guesses = Vec::new();
+        loop {
+            let guess = solver.guess();
+            guesses.push(guess.to_string());
+            let hint = Hint::new(guess, code);
+            solver.update(guess, hint);
+            if hint.is_solution() {
+                break;
+            }
+        }
+        guesses
     }
 }

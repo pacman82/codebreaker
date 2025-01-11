@@ -36,7 +36,7 @@ fn main() -> Result<(), Error> {
         };
         let hint = Hint::new(guess, code);
         solver.update(guess, hint);
-        if guess == code {
+        if hint.is_solution() {
             println!("Congratulations! You cracked the code in {num_guess} guesses.");
             break;
         }
