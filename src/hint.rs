@@ -62,10 +62,15 @@ fn color_hint(color: Peg, guess: Code, code: Code) -> (u8, u8) {
 mod tests {
     use super::Hint;
 
-
     #[test]
     fn hint() {
         let hint = Hint::new("6335".parse().unwrap(), "3311".parse().unwrap());
-        assert_eq!(hint, Hint { correct: 1, displaced: 1})
+        assert_eq!(
+            hint,
+            Hint {
+                correct: 1,
+                displaced: 1
+            }
+        )
     }
 }

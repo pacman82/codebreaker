@@ -34,7 +34,7 @@ impl FromStr for Code {
         let mut pegs = [Peg::new(0); NUMBER_OF_PEGS_IN_CODE];
         let mut it_c = s.chars();
         for peg in &mut pegs {
-            let Some(c) = it_c.next() else  {
+            let Some(c) = it_c.next() else {
                 return Err(CodeParsingError::TooFewPegs);
             };
             *peg = Peg::from_char(c).ok_or(CodeParsingError::InvalidPeg(c))?;

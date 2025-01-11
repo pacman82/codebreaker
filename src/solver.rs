@@ -130,7 +130,10 @@ impl Candidate {
             }
             (None, None) => {
                 a.eliminated = Some(min_eliminated_with_lower_bound(a.code, 0));
-                b.eliminated = Some(min_eliminated_with_lower_bound(b.code, a.eliminated.unwrap()));
+                b.eliminated = Some(min_eliminated_with_lower_bound(
+                    b.code,
+                    a.eliminated.unwrap(),
+                ));
                 a.replace_if_better(b)
             }
         }
