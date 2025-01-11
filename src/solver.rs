@@ -33,18 +33,12 @@ impl Solver {
             return self.possible_solutions[0];
         }
         // Minimize guaranteed remaining possibliities
-        let (guess, _max_remaining) = self
+        let guess  = self
             .unguessed_codes
             .par_iter()
-            .map(|&candidate_guess| {
-                (
-                    candidate_guess,
-                    self.min_possibilties_eliminated(candidate_guess),
-                )
-            })
-            .max_by_key(|(_guess, min_possibilities_eliminated)| *min_possibilities_eliminated)
+            .max_by_key(|&&guess| self.min_possibilties_eliminated(guess))
             .expect("All hints must be valid");
-        guess
+        *guess
     }
 
     pub fn update(&mut self, guess: Code, hint: Hint) {
