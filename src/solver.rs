@@ -1,5 +1,6 @@
 use std::cmp::min;
 
+use rand::seq::SliceRandom as _;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator as _};
 
 use crate::{
@@ -17,6 +18,7 @@ pub struct Solver {
 }
 
 impl Solver {
+    /// Creates a solver which deterministically solves the codebreaker game.
     pub fn new() -> Self {
         let mut possible_solutions =
             Vec::with_capacity((NUM_DIFFERENT_PEGS as usize).pow(NUMBER_OF_PEGS_IN_CODE as u32));
@@ -25,6 +27,13 @@ impl Solver {
             unguessed_codes: possible_solutions.clone(),
             possible_solutions,
         }
+    }
+
+    /// Creates a solver which picks randomly one of the best guesses
+    pub fn with_sampled_guesses(rng: &mut impl rand::Rng) -> Self {
+        let mut solver = Solver::new();
+        solver.unguessed_codes.shuffle(rng);
+        solver
     }
 
     pub fn guess(&mut self) -> Code {
@@ -44,7 +53,7 @@ impl Solver {
                     (guess_a, eliminated_a)
                 }
             })
-            .expect("All hints must be valid");
+            .expect("Solution must be possible");
         guess
     }
 

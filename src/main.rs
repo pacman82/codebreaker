@@ -3,7 +3,7 @@ use std::io;
 use anyhow::Error;
 use code::Code;
 use hint::Hint;
-use rand::random;
+use rand::{random, thread_rng};
 use solver::Solver;
 
 mod code;
@@ -13,7 +13,7 @@ mod solver;
 
 fn main() -> Result<(), Error> {
     let mut num_guess = 0;
-    let mut solver = Solver::new();
+    let mut solver = Solver::with_sampled_guesses(&mut thread_rng());
     let code: Code = random();
 
     println!("Hello, this is a game, there you guess a code and I give hints after each guess. A \
