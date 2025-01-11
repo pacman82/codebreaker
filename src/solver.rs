@@ -41,20 +41,14 @@ impl Solver {
         if self.possible_solutions.len() == 1 {
             return self.possible_solutions[0];
         }
-        // Minimize guaranteed remaining possibliities
-        let (guess, _guaranteed_eliminated)  = self
+        // Maximize guaranteed elimination of possiblities
+        let best_candidate  = self
             .unguessed_codes
             .par_iter()
-            .map(|&code| (code, self.min_possibilties_eliminated(code)))
-            .reduce_with(|(guess_a, eliminated_a), (guess_b, eliminated_b)| {
-                if eliminated_b > eliminated_a {
-                    (guess_b, eliminated_b)
-                } else {
-                    (guess_a, eliminated_a)
-                }
-            })
+            .map(|&code| Candidate::new(code, self.min_possibilties_eliminated(code)))
+            .reduce_with(Candidate::better)
             .expect("Solution must be possible");
-        guess
+        best_candidate.code
     }
 
     pub fn update(&mut self, guess: Code, hint: Hint) {
@@ -84,6 +78,27 @@ impl Solver {
             .filter(|&&code| hint != Hint::new(guess, code))
             .take(upper_bound as usize)
             .count() as u32
+    }
+}
+
+/// Candidate for a guess
+struct Candidate {
+    code: Code,
+    eliminated: u32,
+}
+
+impl Candidate {
+    fn new(code: Code, eliminated: u32) -> Self {
+        Candidate { code, eliminated }
+    }
+
+    /// Out of two candidates, picks the better one, or the first one if they are equal.
+    fn better(a: Candidate, b: Candidate) -> Candidate {
+        if b.eliminated > a.eliminated {
+            b
+        } else {
+            a
+        }
     }
 }
 
