@@ -42,11 +42,13 @@ impl Solver {
             return self.possible_solutions[0];
         }
         // Maximize guaranteed elimination of possiblities
-        let best_candidate  = self
+        let best_candidate = self
             .unguessed_codes
             .par_iter()
-            .map(|&code| Candidate::new(code, self.min_possibilties_eliminated(code)))
-            .reduce_with(Candidate::better)
+            .map(|&code| Candidate::new(code))
+            .reduce_with(|a, b| {
+                Candidate::better(a, b, |code| self.min_possibilties_eliminated(code))
+            })
             .expect("Solution must be possible");
         best_candidate.code
     }
@@ -83,18 +85,31 @@ impl Solver {
 
 /// Candidate for a guess
 struct Candidate {
+    /// Code the guess represents
     code: Code,
-    eliminated: u32,
+    /// Laziyly computed number of guaranteed possibilities eliminated by this guess
+    eliminated: Option<u32>,
 }
 
 impl Candidate {
-    fn new(code: Code, eliminated: u32) -> Self {
-        Candidate { code, eliminated }
+    fn new(code: Code) -> Self {
+        Candidate {
+            code,
+            eliminated: None,
+        }
     }
 
     /// Out of two candidates, picks the better one, or the first one if they are equal.
-    fn better(a: Candidate, b: Candidate) -> Candidate {
-        if b.eliminated > a.eliminated {
+    fn better(
+        mut a: Candidate,
+        mut b: Candidate,
+        min_eliminated: impl Fn(Code) -> u32,
+    ) -> Candidate {
+        let a_eliminated = a.eliminated.unwrap_or_else(|| min_eliminated(a.code));
+        let b_eliminated = b.eliminated.unwrap_or_else(|| min_eliminated(b.code));
+        a.eliminated = Some(a_eliminated);
+        b.eliminated = Some(b_eliminated);
+        if b_eliminated > a_eliminated {
             b
         } else {
             a
@@ -116,10 +131,7 @@ mod tests {
         let mut solver = Solver::new();
         let guesses = play_out(code, &mut solver);
 
-        assert_eq!(
-            &["2211", "4321", "5131", "6111", "5611"],
-            &guesses[..]
-        );
+        assert_eq!(&["2211", "4321", "5131", "6111", "5611"], &guesses[..]);
     }
 
     #[test]
@@ -129,15 +141,15 @@ mod tests {
         let mut solver = Solver::new();
         let guesses = play_out(code, &mut solver);
 
-        assert_eq!(
-            &["2211", "3221", "2231"],
-            &guesses[..]
-        );
+        assert_eq!(&["2211", "3221", "2231"], &guesses[..]);
     }
 
     fn play_out(code: Code, solver: &mut Solver) -> Vec<String> {
         let mut guesses = Vec::new();
+        let mut count = 0;
         loop {
+            assert!(count < 5, "Too many guesses");
+
             let guess = solver.guess();
             guesses.push(guess.to_string());
             let hint = Hint::new(guess, code);
@@ -145,6 +157,7 @@ mod tests {
             if hint.is_solution() {
                 break;
             }
+            count += 1;
         }
         guesses
     }
