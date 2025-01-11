@@ -33,12 +33,19 @@ impl Solver {
             return self.possible_solutions[0];
         }
         // Minimize guaranteed remaining possibliities
-        let guess  = self
+        let (guess, _guaranteed_eliminated)  = self
             .unguessed_codes
             .par_iter()
-            .max_by_key(|&&guess| self.min_possibilties_eliminated(guess))
+            .map(|&code| (code, self.min_possibilties_eliminated(code)))
+            .reduce_with(|(guess_a, eliminated_a), (guess_b, eliminated_b)| {
+                if eliminated_b > eliminated_a {
+                    (guess_b, eliminated_b)
+                } else {
+                    (guess_a, eliminated_a)
+                }
+            })
             .expect("All hints must be valid");
-        *guess
+        guess
     }
 
     pub fn update(&mut self, guess: Code, hint: Hint) {
@@ -86,7 +93,7 @@ mod tests {
         let guesses = play_out(code, &mut solver);
 
         assert_eq!(
-            &["5566", "3466", "2356", "1566", "5611"],
+            &["2211", "4321", "5131", "6111", "5611"],
             &guesses[..]
         );
     }
@@ -99,7 +106,7 @@ mod tests {
         let guesses = play_out(code, &mut solver);
 
         assert_eq!(
-            &["5566", "2344", "1144", "3314", "2231"],
+            &["2211", "3221", "2231"],
             &guesses[..]
         );
     }
