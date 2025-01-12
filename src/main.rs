@@ -1,15 +1,9 @@
 use std::io;
 
 use anyhow::Error;
-use code::Code;
-use hint::Hint;
 use rand::{random, thread_rng};
-use solver::Solver;
 
-mod code;
-mod hint;
-mod peg;
-mod solver;
+use codebreaker_solver::{Code, Hint, Solver};
 
 fn main() -> Result<(), Error> {
     let mut num_guess = 0;

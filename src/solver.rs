@@ -97,6 +97,12 @@ impl Solver {
     }
 }
 
+impl Default for Solver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Candidate for a guess
 struct Candidate {
     /// Code the guess represents
