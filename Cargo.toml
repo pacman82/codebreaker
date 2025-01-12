@@ -2,6 +2,8 @@
 name = "codebreaker-solver"
 version = "0.1.0"
 edition = "2021"
+description = "A solver for codebreaker aka. bulls and cows. Generates guesses which will guess the code in at most 5 tries."
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0.95"
